@@ -59,15 +59,9 @@ namespace ScreenClock
 
             //this.Top = Screen.GetWorkingArea(this).Top - this.Height;
             //this.Left = Screen.GetWorkingArea(this).Left;
-            height = ra.Next() % Screen.GetWorkingArea(this).Bottom + 300;
-            height = height % Screen.GetWorkingArea(this).Bottom;
-            this.Top = Screen.GetWorkingArea(this).Top - this.Height + height;
+
+            this.Top = ra.Next() % (Screen.GetWorkingArea(this).Bottom - 300) + this.Height;
             this.Left = Screen.GetWorkingArea(this).Right;
-
-            Console.WriteLine("Screen.GetWorkingArea(this).Bottom " + Screen.GetWorkingArea(this).Bottom);
-            Console.WriteLine("this.Top " + this.Top);
-            Console.WriteLine("this.Height " + this.Height);
-
 
         }
 
