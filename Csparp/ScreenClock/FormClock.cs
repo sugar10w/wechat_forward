@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Text;
+using System.Collections.Generic;
 
 namespace ScreenClock
 {
@@ -10,12 +11,16 @@ namespace ScreenClock
         /// <summary>
         /// 表示正在移动窗口
         /// </summary>
-        private bool moving = true;
+
+        enum MovingType { Common, Flower };
+        private MovingType movingType = MovingType.Common;
+
+        private double vHorizonal = 5, vVertical = 0, gravity = 0.1;
 
         /// <summary>
         /// 用于移动窗口时的坐标换算
         /// </summary>
-        private Point mouseOffset;
+        
         static public Random ra = new Random();
         static private Color[] clist = 
         { 
@@ -46,60 +51,69 @@ namespace ScreenClock
         /// </summary>
         //private Transparency transparency = new Transparency();
 
-        public FormClock(int height, string text)
+        public FormClock(string text)
         {
             InitializeComponent();
 
-            //timerUpdate_Tick(null, null);
-            labelTime.Width = text.Length * 50;
-            this.Size = labelTime.Size;
-            this.Width = text.Length * 50;
-            labelTime.Text = text;
-            labelTime.ForeColor = clist[ra.Next() % 20];
 
-            //this.Top = Screen.GetWorkingArea(this).Top - this.Height;
-            //this.Left = Screen.GetWorkingArea(this).Left;
 
-            this.Top = ra.Next() % (Screen.GetWorkingArea(this).Bottom - 300) + this.Height;
-            this.Left = Screen.GetWorkingArea(this).Right;
+            if (text == "撒花")
+            {
+                movingType = MovingType.Flower;
 
+                labelTime.Width = text.Length * 50;
+                this.Size = labelTime.Size;
+                this.Width = text.Length * 50;
+                labelTime.Text = text;
+                labelTime.ForeColor = clist[ra.Next() % 20];
+
+                this.Top = ra.Next() % (Screen.GetWorkingArea(this).Bottom / 4) + Screen.GetWorkingArea(this).Bottom / 2 + this.Height;
+                this.Left = Screen.GetWorkingArea(this).Right + ra.Next() % (Screen.GetWorkingArea(this).Right / 2);
+
+                vVertical = - 4 - ra.Next() % 7 ;
+                vHorizonal = 7;
+            }
+            else
+            {
+                movingType = MovingType.Common;
+
+                labelTime.Width = text.Length * 50;
+                this.Size = labelTime.Size;
+                this.Width = text.Length * 50;
+                labelTime.Text = text;
+                labelTime.ForeColor = clist[ra.Next() % 20];
+
+                this.Top = ra.Next() % (Screen.GetWorkingArea(this).Bottom / 4) + this.Height;
+                this.Left = Screen.GetWorkingArea(this).Right;
+
+                vHorizonal = 5;
+            }
         }
 
         
 
         private void timerUpdate_Tick(object sender, EventArgs e)
         {
-            //DateTime dt = DateTime.Now;
-            //labelTime.Text = String.Format("{0}年{1}月{2}日\n{3}\n{4}:{5}:{6}",
-            //    dt.Year, dt.Month.ToString().PadLeft(2, ' '),
-            //    dt.Day.ToString().PadLeft(2, ' '),
-            //    dt.DayOfWeek,
-            //    dt.Hour.ToString().PadLeft(2, ' '),
-            //    dt.Minute.ToString().PadLeft(2, '0'),
-            //    dt.Second.ToString().PadLeft(2, '0'));
-            this.Left -= 3;
-            if (moving)
+
+            switch (movingType)
             {
-                this.Left -= 3;
-            }
-            if (this.Right < Screen.GetWorkingArea(this).Left)
-            {
-                //this.Close();
+                case MovingType.Common:
+                    this.Left -= (int)vHorizonal;
+                    break;
+                case MovingType.Flower:
+
+                    vVertical += gravity;
+                    this.Top += (int)vVertical;
+
+                    this.Left -= 7;
+                    break;
             }
 
-        }
+            if (this.Right < Screen.GetWorkingArea(this).Left || this.Top > Screen.GetWorkingArea(this).Bottom)
+            {
+                this.Close();
+            }
 
-        private void timerFade_Tick(object sender, EventArgs e)
-        {
-            //this.Top+=3;
-            //if (this.Opacity < 0.7)
-            //{
-            //    this.Opacity += 0.01;
-            //}
-            //if (this.Top > 0)
-            //{
-            //    timerFadeIn.Stop();
-            //}
         }
 
         /// <summary>
@@ -118,63 +132,6 @@ namespace ScreenClock
             }
         }
 
-        private void labelTime_MouseDown(object sender, MouseEventArgs e)
-        {
-            //if (e.Button == MouseButtons.Left)
-            //{
-            //    moving = true;
-            //    mouseOffset = new Point(-e.X, -e.Y);
-            //}
-            //if (e.Button == MouseButtons.Middle)
-            //{
-            //    Application.Exit();
-            //}
-        }
 
-        private void labelTime_MouseMove(object sender, MouseEventArgs e)
-        {
-            //if (moving)
-            //{
-            //    Point mouseSet = Control.MousePosition;
-            //    mouseSet.Offset(mouseOffset);
-            //    Location = mouseSet;
-            //}
-        }
-
-        private void labelTime_MouseUp(object sender, MouseEventArgs e)
-        {
-            //moving = false;
-        }
-
-        private void labelTime_DoubleClick(object sender, EventArgs e)
-        {
-            //transparency.ShowDialog(this);
-        }
-
-        private void ToolStripMenuItemFont_Click(object sender, EventArgs e)
-        {
-            //FontDialog fd = new FontDialog();
-            //fd.Font = labelTime.Font;
-            //if (fd.ShowDialog() == DialogResult.OK)
-            //{
-            //    labelTime.Font = fd.Font;
-            //}
-            //this.Size = labelTime.Size;
-        }
-
-        private void ToolStripMenuItemColor_Click(object sender, EventArgs e)
-        {
-            //ColorDialog cd = new ColorDialog();
-            //cd.Color = labelTime.ForeColor;
-            //if (cd.ShowDialog() == DialogResult.OK)
-            //{
-            //    if (cd.Color == this.TransparencyKey)
-            //    {
-            //        this.BackColor = labelTime.ForeColor;
-            //        this.TransparencyKey = labelTime.ForeColor;
-            //    }
-            //    labelTime.ForeColor = cd.Color;
-            //}
-        }
     }
 }

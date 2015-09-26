@@ -23,8 +23,16 @@ namespace ScreenClock
 
         static public void TCPhandler(object sender, TcpEventArgs e)
         {
-            FormClock bb = new FormClock(800, e.data);
-            bb.Show();
+            if (e.data == "撒花")
+            {
+                for (int i = 0; i < 10; ++i)
+                    new FormClock(e.data).Show();
+            }
+            else
+            {
+                FormClock bb = new FormClock(e.data);
+                bb.Show();
+            }
         }
 
         private void Formvoid_Load(object sender, EventArgs e)

@@ -13,8 +13,29 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 app = Flask(__name__)
-userList=[]
+clientList=[]
+userNameList=[]
+userNameStatus=[]
+MAXSTATUS=10
 
+def ModifyUserStatus(UserName,Content):
+	if UserName in userNameList:
+		i = userNameList.index(UserName)
+		if userNameStatus[i]<=MAXSTATUS:
+			userNameStatus[i]+=1
+	else:
+		userNameList.append(UserName)
+		userNameStatus.append(1)
+
+def GetUserStatus(UserName):
+	if UserName in userNameList:
+		i=0
+		i = userNameList.index(UserName)
+		return userNameStatus[i]
+	else:
+		ModifyUserStatus(UserName," ")
+		return 0
+		
 @app.route('/hello')
 def hello():
 	return 'Hello World!'
@@ -29,14 +50,26 @@ def wechat_auth():
 	else:
 		xml_recv = ET.fromstring(request.data)
 		Content = xml_recv.find("Content").text
-		
-		sendToDM(Content)
+		FromUserName = xml_recv.find("FromUserName").text
 		
 		msg="";
-		if len(userList)==0:
+		if len(clientList)==0:
 			msg="(暂时没有弹幕客户端开着...)"
 		else:
-			msg="弹幕已发送~~~"
+			cnt=0
+			if Content=="撒花":
+				ModifyUserStatus(FromUserName,Content)
+				cnt=GetUserStatus(FromUserName)
+				print "cnt="+str(cnt)
+				if cnt<=MAXSTATUS:
+					sendToDM(Content)
+					msg="撒花成功！！您还有"+str(MAXSTATUS-cnt)+"次撒花机会~~~"
+					print msg
+				else:
+					msg="啊哦，您的撒花机会已经用光啦~~~"
+			else:
+				sendToDM(Content)
+				msg="弹幕已发送~~~"
 		
 		response = reply_res(xml_recv, msg)
 		return response
@@ -62,20 +95,20 @@ def reply_res(xml_recv, msg):
 
 def sendToDM(str):
 	print str
-	for (s,a) in userList:
+	for (s,a) in clientList:
 		try:
 			#print "send to " + a[0] + "..."
 			s.send(str)
 			#print "done."
 		except:
-			userList.remove((sock,addr))
+			clientList.remove((sock,addr))
 
 def tcplink(sock, addr):
 	str=sock.recv(1024)
 	if str != "asta2015":
 		return
 		
-	userList.append((sock,addr));
+	clientList.append((sock,addr));
 	
 	print "New connection from %s:%s" % (addr[0],addr[1]) 
 
@@ -83,7 +116,7 @@ def tcplink(sock, addr):
 		try:
 			data = sock.recv(1024)
 		except:
-			userList.remove((sock,addr))
+			clientList.remove((sock,addr))
 			return 1
 
 def startServer():
